@@ -219,6 +219,43 @@ export default function Home() {
               Full Statistics
             </button>
           </div>
+
+          {/* My Plans Section */}
+          {plans.length > 0 && (
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-[var(--primary)]/5 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-gray-800">MY PLANS</h4>
+                <span className="text-xs font-bold text-gray-400">{plans.length}개</span>
+              </div>
+              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
+                {plans.map((plan) => (
+                  <button
+                    key={plan.id}
+                    onClick={() => fetchPlan(plan.id)}
+                    className={`w-full p-3 rounded-lg text-left transition-all ${
+                      currentPlan?.id === plan.id
+                        ? 'bg-[var(--primary)] text-white'
+                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    <p className={`font-bold text-sm truncate ${currentPlan?.id === plan.id ? 'text-white' : 'text-gray-800'}`}>
+                      {plan.title}
+                    </p>
+                    <p className={`text-xs truncate mt-1 ${currentPlan?.id === plan.id ? 'text-white/70' : 'text-gray-500'}`}>
+                      {plan.core_objective || '목표 없음'}
+                    </p>
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="w-full py-2 border-2 border-dashed border-gray-200 hover:border-[var(--primary)] text-gray-500 hover:text-[var(--primary)] font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">add</span>
+                새 플랜 추가
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
