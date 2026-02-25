@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import { getCellType } from '@/types';
 
 // GET /api/plans - Get all plans
@@ -7,6 +7,7 @@ export async function GET() {
   console.log('[API] GET /api/plans - Fetching all plans');
 
   try {
+    const supabase = getSupabase();
     const { data, error } = await supabase
       .from('plans')
       .select('*')
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
   console.log('[API] POST /api/plans - Creating new plan');
 
   try {
+    const supabase = getSupabase();
     const body = await request.json();
     const { title, core_objective, target_date, cells } = body;
 

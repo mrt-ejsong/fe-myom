@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 
 // GET /api/plans/[id] - Get a single plan with cells
 export async function GET(
@@ -10,6 +10,8 @@ export async function GET(
   console.log('[API] GET /api/plans/' + id);
 
   try {
+    const supabase = getSupabase();
+
     // Fetch plan
     const { data: plan, error: planError } = await supabase
       .from('plans')
@@ -52,6 +54,7 @@ export async function PUT(
   console.log('[API] PUT /api/plans/' + id);
 
   try {
+    const supabase = getSupabase();
     const body = await request.json();
     const { title, core_objective, target_date } = body;
 
@@ -84,6 +87,8 @@ export async function DELETE(
   console.log('[API] DELETE /api/plans/' + id);
 
   try {
+    const supabase = getSupabase();
+
     const { error } = await supabase
       .from('plans')
       .delete()

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/lib/supabase';
 import { CellStatus } from '@/types';
 
 interface CellUpdate {
@@ -17,6 +17,7 @@ export async function PUT(
   console.log('[API] PUT /api/plans/' + planId + '/cells');
 
   try {
+    const supabase = getSupabase();
     const body = await request.json();
     const { cells } = body as { cells: CellUpdate[] };
 
