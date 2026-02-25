@@ -480,7 +480,7 @@ function CreatePlanModal({
           title,
           core_objective: coreObjective,
           target_date: targetDate || null,
-          initial_cells: useAI && aiCells ? aiCells : undefined,
+          cells: useAI && aiCells ? aiCells : undefined,
         }),
       });
 
@@ -536,11 +536,24 @@ function CreatePlanModal({
               placeholder="예: 2024년 시니어 UI/UX 디자이너 되기"
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)]"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">목표 달성일</label>
+            <input
+              type="date"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)]"
+            />
+          </div>
+
+          <div>
             <button
               type="button"
               onClick={handleAIRecommend}
               disabled={aiLoading || coreObjective.trim().length < 5}
-              className="mt-2 w-full py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg font-medium text-sm disabled:opacity-50 flex items-center justify-center gap-2 hover:from-violet-600 hover:to-purple-700 transition-all"
+              className="w-full py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-bold disabled:opacity-50 flex items-center justify-center gap-2 hover:from-violet-600 hover:to-purple-700 transition-all"
             >
               {aiLoading ? (
                 <>
@@ -560,16 +573,6 @@ function CreatePlanModal({
                 AI 추천이 준비되었습니다! ({aiCells.length}개 항목)
               </p>
             )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">목표 달성일</label>
-            <input
-              type="date"
-              value={targetDate}
-              onChange={(e) => setTargetDate(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)]"
-            />
           </div>
 
         </div>
