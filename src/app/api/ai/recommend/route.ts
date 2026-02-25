@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { SUB_GOAL_POSITIONS, ULTIMATE_GOAL_POSITION, SUB_GOAL_TO_ACTION_POSITIONS, MINI_GRID_CENTERS } from '@/types';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 interface AIRecommendation {
   sub_goals: string[];
   action_items: Record<string, string[]>;
@@ -16,6 +12,11 @@ export async function POST(request: NextRequest) {
   console.log('[API] POST /api/ai/recommend - Generating AI recommendations');
 
   try {
+    // Initialize OpenAI client lazily to avoid build-time errors
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
     const body = await request.json();
     const { core_objective } = body;
 
