@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { SUB_GOAL_POSITIONS, ULTIMATE_GOAL_POSITION, SUB_GOAL_TO_ACTION_POSITIONS, MINI_GRID_CENTERS } from '@/types';
 
 interface AIRecommendation {
@@ -12,16 +12,17 @@ export async function POST(request: NextRequest) {
   console.log('[API] POST /api/ai/recommend - Generating AI recommendations');
 
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.error('[API] OPENAI_API_KEY not configured');
+      console.error('[API] GEMINI_API_KEY not configured');
       return NextResponse.json(
         { error: 'AI 서비스가 설정되지 않았습니다.' },
         { status: 500 }
       );
     }
 
-    const openai = new OpenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     const body = await request.json();
     const { core_objective } = body;
@@ -47,37 +48,22 @@ export async function POST(request: NextRequest) {
 3. 실행 항목은 구체적이고 실행 가능해야 합니다.
 4. 한국어로 작성하세요.
 
-JSON 형식으로만 응답하세요:
+JSON 형식으로만 응답하세요 (다른 텍스트 없이 JSON만):
 {
-  "sub_goals": ["서브목표1", "서브목표2", ...],
+  "sub_goals": ["서브목표1", "서브목표2", "서브목표3", "서브목표4", "서브목표5", "서브목표6", "서브목표7", "서브목표8"],
   "action_items": {
-    "서브목표1": ["실행1", "실행2", ...],
-    "서브목표2": ["실행1", "실행2", ...],
+    "서브목표1": ["실행1", "실행2", "실행3", "실행4", "실행5", "실행6", "실행7", "실행8"],
+    "서브목표2": ["실행1", "실행2", "실행3", "실행4", "실행5", "실행6", "실행7", "실행8"],
     ...
   }
 }`;
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a helpful assistant that generates Mandalart goal plans. Always respond with valid JSON only.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
-
-    const responseText = completion.choices[0]?.message?.content;
-    console.log('[API] OpenAI response received');
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    console.log('[API] Gemini response received');
 
     if (!responseText) {
-      console.error('[API] Empty response from OpenAI');
+      console.error('[API] Empty response from Gemini');
       return NextResponse.json(
         { error: 'AI 추천을 불러오지 못했습니다. 다시 시도해 주세요.' },
         { status: 500 }
@@ -93,7 +79,7 @@ JSON 형식으로만 응답하세요:
       }
       recommendation = JSON.parse(jsonMatch[0]);
     } catch (parseError) {
-      console.error('[API] Failed to parse OpenAI response:', parseError);
+      console.error('[API] Failed to parse Gemini response:', parseError);
       console.error('[API] Response text:', responseText);
       return NextResponse.json(
         { error: 'AI 응답을 처리하지 못했습니다. 다시 시도해 주세요.' },
