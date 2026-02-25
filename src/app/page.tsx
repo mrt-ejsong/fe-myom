@@ -427,6 +427,42 @@ function CreatePlanModal({
   const [coreObjective, setCoreObjective] = useState('');
   const [targetDate, setTargetDate] = useState('');
   const [loading, setLoading] = useState(false);
+  const [useAI, setUseAI] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiCells, setAiCells] = useState<{ position: number; content: string }[] | null>(null);
+
+  const handleAIRecommend = async () => {
+    if (!coreObjective || coreObjective.trim().length < 5) {
+      alert('AI 추천을 받으려면 핵심 목표를 5자 이상 입력해 주세요.');
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      console.log('[UI] Requesting AI recommendation...');
+      const res = await fetch('/api/ai/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ core_objective: coreObjective }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'AI 추천을 불러오지 못했습니다.');
+        return;
+      }
+
+      console.log('[UI] AI recommendation received:', data.cells?.length, 'cells');
+      setAiCells(data.cells);
+      setUseAI(true);
+    } catch (error) {
+      console.error('[UI] Error getting AI recommendation:', error);
+      alert('AI 추천을 불러오지 못했습니다. 다시 시도해 주세요.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleCreate = async () => {
     if (!title) {
@@ -444,6 +480,7 @@ function CreatePlanModal({
           title,
           core_objective: coreObjective,
           target_date: targetDate || null,
+          initial_cells: useAI && aiCells ? aiCells : undefined,
         }),
       });
 
@@ -491,10 +528,38 @@ function CreatePlanModal({
             <input
               type="text"
               value={coreObjective}
-              onChange={(e) => setCoreObjective(e.target.value)}
+              onChange={(e) => {
+                setCoreObjective(e.target.value);
+                setAiCells(null);
+                setUseAI(false);
+              }}
               placeholder="예: 2024년 시니어 UI/UX 디자이너 되기"
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)]"
             />
+            <button
+              type="button"
+              onClick={handleAIRecommend}
+              disabled={aiLoading || coreObjective.trim().length < 5}
+              className="mt-2 w-full py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg font-medium text-sm disabled:opacity-50 flex items-center justify-center gap-2 hover:from-violet-600 hover:to-purple-700 transition-all"
+            >
+              {aiLoading ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+                  AI가 추천 중...
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                  AI로 만다라트 채우기
+                </>
+              )}
+            </button>
+            {aiCells && (
+              <p className="mt-2 text-xs text-emerald-600 flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+                AI 추천이 준비되었습니다! ({aiCells.length}개 항목)
+              </p>
+            )}
           </div>
 
           <div>
