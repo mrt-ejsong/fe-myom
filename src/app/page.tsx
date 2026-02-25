@@ -426,43 +426,7 @@ function CreatePlanModal({
   const [title, setTitle] = useState('');
   const [coreObjective, setCoreObjective] = useState('');
   const [targetDate, setTargetDate] = useState('');
-  const [useAI, setUseAI] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiCells, setAiCells] = useState<{ position: number; content: string }[] | null>(null);
-
-  const handleAIRecommend = async () => {
-    if (!coreObjective || coreObjective.length < 5) {
-      alert('목표를 조금 더 구체적으로 입력해 주세요.');
-      return;
-    }
-
-    setAiLoading(true);
-    try {
-      console.log('[UI] Requesting AI recommendation...');
-      const res = await fetch('/api/ai/recommend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ core_objective: coreObjective }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.error || 'AI 추천을 불러오지 못했습니다.');
-        return;
-      }
-
-      console.log('[UI] AI recommendation received:', data.cells?.length, 'cells');
-      setAiCells(data.cells);
-      setUseAI(true);
-    } catch (error) {
-      console.error('[UI] Error getting AI recommendation:', error);
-      alert('AI 추천을 불러오지 못했습니다. 다시 시도해 주세요.');
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   const handleCreate = async () => {
     if (!title) {
@@ -480,7 +444,6 @@ function CreatePlanModal({
           title,
           core_objective: coreObjective,
           target_date: targetDate || null,
-          cells: useAI && aiCells ? aiCells : undefined,
         }),
       });
 
@@ -544,31 +507,6 @@ function CreatePlanModal({
             />
           </div>
 
-          {/* AI Recommendation */}
-          <div className="border-t pt-4 mt-2">
-            <button
-              onClick={handleAIRecommend}
-              disabled={aiLoading || !coreObjective}
-              className="w-full py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {aiLoading ? (
-                <>
-                  <span className="material-symbols-outlined animate-spin">progress_activity</span>
-                  AI 분석 중...
-                </>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined">auto_awesome</span>
-                  AI로 채우기
-                </>
-              )}
-            </button>
-            {aiCells && (
-              <p className="text-sm text-emerald-600 mt-2 text-center">
-                ✓ AI 추천이 준비되었습니다! ({aiCells.length}개 항목)
-              </p>
-            )}
-          </div>
         </div>
 
         <div className="flex gap-3 mt-6">
