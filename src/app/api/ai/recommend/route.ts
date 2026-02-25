@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.0-pro' });
+    // Try gemini-1.5-flash which is the current free tier model
+    const model = genAI.getGenerativeModel({ model: 'models/gemini-1.5-flash' });
 
     const body = await request.json();
     const { core_objective } = body;
