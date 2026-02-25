@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plan, Cell, PlanWithCells, getCellType, ULTIMATE_GOAL_POSITION, SUB_GOAL_POSITIONS, CellStatus } from '@/types';
+import { Plan, Cell, PlanWithCells, getCellType, ULTIMATE_GOAL_POSITION, SUB_GOAL_POSITIONS, MINI_GRID_CENTERS, CellStatus } from '@/types';
+
+// Reverse mapping: outer grid center position -> sub-goal position
+const OUTER_CENTER_TO_SUBGOAL: Record<number, number> = Object.entries(MINI_GRID_CENTERS).reduce(
+  (acc, [subGoalPos, centerPos]) => {
+    acc[centerPos] = Number(subGoalPos);
+    return acc;
+  },
+  {} as Record<number, number>
+);
 
 export default function Home() {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -377,15 +386,25 @@ function MandalartGrid({
 
     const isUltimate = position === ULTIMATE_GOAL_POSITION;
     const isSubGoal = SUB_GOAL_POSITIONS.includes(position);
+    const isOuterCenter = position in OUTER_CENTER_TO_SUBGOAL;
     const cellType = getCellType(position);
+
+    // For outer center positions, get the corresponding sub-goal content
+    let displayContent = cell.content || '';
+    if (isOuterCenter) {
+      const subGoalPosition = OUTER_CENTER_TO_SUBGOAL[position];
+      const subGoalCell = getCellByPosition(subGoalPosition);
+      displayContent = subGoalCell?.content || '';
+    }
 
     const cellClass = isUltimate
       ? 'cell cell-ultimate'
-      : isSubGoal
+      : isSubGoal || isOuterCenter
       ? 'cell cell-subgoal'
       : `cell cell-action ${cell.status}`;
 
-    if (editingCell === position) {
+    // Don't allow editing outer center cells (they mirror sub-goals)
+    if (editingCell === position && !isOuterCenter) {
       return (
         <div className={cellClass}>
           <input
@@ -405,14 +424,14 @@ function MandalartGrid({
     return (
       <div
         className={cellClass}
-        onClick={() => onCellClick(cell)}
+        onClick={() => !isOuterCenter && onCellClick(cell)}
         onContextMenu={(e) => {
           e.preventDefault();
-          if (cellType === 'action_item') onStatusChange(cell);
+          if (cellType === 'action_item' && !isOuterCenter) onStatusChange(cell);
         }}
-        title={cellType === 'action_item' ? '우클릭으로 상태 변경' : undefined}
+        title={isOuterCenter ? '서브목표 (중앙 그리드에서 수정)' : cellType === 'action_item' ? '우클릭으로 상태 변경' : undefined}
       >
-        {cell.content || ''}
+        {displayContent}
       </div>
     );
   };
